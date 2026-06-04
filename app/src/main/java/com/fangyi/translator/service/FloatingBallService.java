@@ -114,9 +114,12 @@ public class FloatingBallService extends Service {
         ballParams.x = screenWidth - dpToPx(72);
         ballParams.y = screenHeight / 3;
 
-        // Use onClickListener for simple tap
+        // Use onClickListener for simple tap with scale feedback
         tvBall.setOnClickListener(v -> {
-            showToast("点击！");
+            // Click animation - scale down then back
+            v.animate().scaleX(0.8f).scaleY(0.8f).setDuration(100)
+                    .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(100).start())
+                    .start();
             toggleMenu();
         });
 
