@@ -84,10 +84,10 @@ public class FloatingBallService extends Service {
             createBall();
             toast("悬浮球已就绪");
         } catch (SecurityException e) {
-            toast("错误：悬浮窗权限被拒绝");
+            toast("异常：悬浮窗权限被拒绝 - " + e.getMessage());
             stopSelf();
         } catch (Exception e) {
-            toast("悬浮球启动失败：" + e.getMessage());
+            toast("异常：启动失败 - " + e.toString().replace("java.lang.", "").replace("android.", ""));
             Log.e(TAG, "onCreate failed", e);
         }
 

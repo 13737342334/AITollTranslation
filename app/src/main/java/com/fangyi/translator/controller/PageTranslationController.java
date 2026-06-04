@@ -61,7 +61,7 @@ public class PageTranslationController {
                 mainHandler.post(() -> {
                     overlay.updateStatus("截图失败: " + error);
                     overlay.hideProgress();
-                    overlay.scheduleAutoDismiss(5000);
+                    overlay.scheduleAutoDismiss(8000);
                 });
                 isTranslating = false;
             }
@@ -157,8 +157,8 @@ public class PageTranslationController {
             } catch (Exception e) {
                 Log.e(TAG, "Translation error", e);
                 mainHandler.post(() -> {
-                    overlay.updateStatus("翻译出错: " + e.getMessage());
-                    overlay.scheduleAutoDismiss(5000);
+                    overlay.updateStatus("翻译异常: " + e.toString().replace("java.lang.", "").replace("com.google.", ""));
+                    overlay.scheduleAutoDismiss(10000);
                 });
                 isTranslating = false;
             }
