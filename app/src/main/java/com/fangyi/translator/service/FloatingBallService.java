@@ -209,12 +209,13 @@ public class FloatingBallService extends Service {
                 dismissMenu();
                 // Check accessibility service first
                 if (!TranslationAccessibilityService.isEnabled()) {
-                    toast("请先开启无障碍服务：设置→无障碍→悬浮翻译助手");
-                    // Open accessibility settings
+                    toast("请先开启辅助功能：设置→辅助功能/无障碍→悬浮翻译助手");
                     try {
                         startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    } catch (Exception ignored) {}
+                    } catch (Exception e2) {
+                        toast("请手动前往系统设置开启");
+                    }
                     return;
                 }
                 pageCtrl.startViaAccessibility();

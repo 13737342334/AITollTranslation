@@ -78,13 +78,9 @@ public class MainActivity extends AppCompatActivity {
         // Remind about accessibility service for page translation
         if (!com.fangyi.translator.service.TranslationAccessibilityService.isEnabled()) {
             new AlertDialog.Builder(this)
-                .setTitle("建议开启无障碍服务")
-                .setMessage("开启后「静态页面翻译」可直接在当前App上截图翻译，无需跳转。\n\n不影响任何其他功能。")
-                .setPositiveButton("去开启", (d, w) -> {
-                    try {
-                        startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                    } catch (Exception ignored) {}
-                })
+                .setTitle("开启「辅助功能/无障碍」服务")
+                .setMessage("页面翻译需要此权限。\n\n点击「去开启」→ 找到「悬浮翻译助手」→ 打开开关 → 返回本App即可。")
+                .setPositiveButton("去开启", (d, w) -> openAccessibilitySettings())
                 .setNegativeButton("稍后", (d, w) -> startFloatingBallService())
                 .show();
             return;
@@ -109,6 +105,22 @@ public class MainActivity extends AppCompatActivity {
         stopService(intent);
         updateServiceStatus();
         Toast.makeText(this, "悬浮球已停止", Toast.LENGTH_SHORT).show();
+    }
+
+    private void openAccessibilitySettings() {
+        // Try multiple approaches for different phone brands
+        String[] actions = {
+                android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS,
+                "com.android.settings.ACCESSIBILITY_SETTINGS",
+                "android.settings.ACCESSIBILITY_SETTINGS"
+        };
+        for (String action : actions) {
+            try {
+                startActivity(new Intent(action));
+                return;
+            } catch (Exception ignored) {}
+        }
+        Toast.makeText(this, "请手动前往：系统设置 → 辅助功能/无障碍 → 悬浮翻译助手 → 开启", Toast.LENGTH_LONG).show();
     }
 
     private void showOverlayPermissionDialog() {
