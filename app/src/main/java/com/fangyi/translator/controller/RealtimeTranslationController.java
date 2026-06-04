@@ -107,16 +107,30 @@ public class RealtimeTranslationController {
         }
     }
 
-    public void start() {
-        if (isRunning) return;
+    public boolean start() {
+        if (isRunning) return true;
+
+        // Check if speech recognition is available
+        if (speechEngine == null || !speechEngine.isAvailable()) {
+            mainHandler.post(() -> subtitleOverlay.showError("语音识别不可用，请确认已安装Google语音服务"));
+            return false;
+        }
+
         isRunning = true;
 
         try {
             subtitleOverlay.show();
             subtitleOverlay.showListening();
             speechEngine.startListening();
+            return true;
+        } catch (SecurityException e) {
+            isRunning = false;
+            mainHandler.post(() -> subtitleOverlay.showError("请授予录音权限"));
+            return false;
         } catch (Exception e) {
             isRunning = false;
+            mainHandler.post(() -> subtitleOverlay.showError("启动失败: " + e.getMessage()));
+            return false;
         }
     }
 

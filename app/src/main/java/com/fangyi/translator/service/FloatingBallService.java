@@ -223,9 +223,17 @@ public class FloatingBallService extends Service {
                         subtitleActive = false;
                         toast("字幕已停止");
                     } else {
-                        subtitleCtrl.start();
-                        subtitleActive = true;
-                        toast("字幕已启动");
+                        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            toast("请先授予录音权限！设置→权限→麦克风");
+                            return;
+                        }
+                        if (subtitleCtrl.start()) {
+                            subtitleActive = true;
+                            toast("字幕已启动，请播放英文视频");
+                        } else {
+                            toast("启动失败：语音识别不可用");
+                        }
                     }
                 });
             }

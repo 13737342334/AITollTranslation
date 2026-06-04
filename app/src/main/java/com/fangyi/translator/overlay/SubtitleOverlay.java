@@ -138,6 +138,16 @@ public class SubtitleOverlay {
         });
     }
 
+    public void showError(String msg) {
+        handler.post(() -> {
+            if (tvEnglish != null) tvEnglish.setText("错误");
+            if (tvChinese != null) tvChinese.setText(msg);
+            if (progressBar != null) progressBar.setVisibility(View.INVISIBLE);
+        });
+        // Auto dismiss error after 5 seconds
+        handler.postDelayed(this::dismiss, 5000);
+    }
+
     public void dismiss() {
         if (!isShowing) return;
         handler.post(() -> {

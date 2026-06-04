@@ -124,6 +124,10 @@ public class SpeechEngine {
         this.callback = callback;
     }
 
+    public boolean isAvailable() {
+        return speechRecognizer != null;
+    }
+
     public void startListening() {
         if (speechRecognizer == null) return;
         if (!isListening) {
