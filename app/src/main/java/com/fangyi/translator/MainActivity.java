@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     private void checkAndStartService() {
         if (!PermissionHelper.hasOverlayPermission(this)) {
             showOverlayPermissionDialog();
-            Toast.makeText(this, "请先授予悬浮窗权限", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -74,6 +73,21 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "请授予通知权限以保持悬浮球运行", Toast.LENGTH_LONG).show();
                 return;
             }
+        }
+
+        // Remind about accessibility service for page translation
+        if (!com.fangyi.translator.service.TranslationAccessibilityService.isEnabled()) {
+            new AlertDialog.Builder(this)
+                .setTitle("建议开启无障碍服务")
+                .setMessage("开启后「静态页面翻译」可直接在当前App上截图翻译，无需跳转。\n\n不影响任何其他功能。")
+                .setPositiveButton("去开启", (d, w) -> {
+                    try {
+                        startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                    } catch (Exception ignored) {}
+                })
+                .setNegativeButton("稍后", (d, w) -> startFloatingBallService())
+                .show();
+            return;
         }
 
         startFloatingBallService();
