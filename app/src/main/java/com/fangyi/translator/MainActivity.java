@@ -108,19 +108,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openAccessibilitySettings() {
-        // Try multiple approaches for different phone brands
-        String[] actions = {
-                android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS,
-                "com.android.settings.ACCESSIBILITY_SETTINGS",
-                "android.settings.ACCESSIBILITY_SETTINGS"
-        };
-        for (String action : actions) {
-            try {
-                startActivity(new Intent(action));
-                return;
-            } catch (Exception ignored) {}
-        }
-        Toast.makeText(this, "请手动前往：系统设置 → 辅助功能/无障碍 → 悬浮翻译助手 → 开启", Toast.LENGTH_LONG).show();
+        // Xiaomi-specific component
+        try {
+            Intent intent = new Intent();
+            intent.setComponent(new android.content.ComponentName(
+                    "com.android.settings",
+                    "com.android.settings.Settings$AccessibilitySettingsActivity"));
+            startActivity(intent);
+            return;
+        } catch (Exception ignored) {}
+
+        // Standard approach
+        try {
+            startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            return;
+        } catch (Exception ignored) {}
+
+        // Fallback: open main settings
+        try {
+            startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+        } catch (Exception ignored) {}
+
+        Toast.makeText(this, "请手动：设置→更多设置→无障碍→悬浮翻译助手", Toast.LENGTH_LONG).show();
     }
 
     private void showOverlayPermissionDialog() {
