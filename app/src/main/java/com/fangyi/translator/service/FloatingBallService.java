@@ -299,7 +299,7 @@ public class FloatingBallService extends Service {
         if (subtitleActive) { subtitleCtrl.stop(); subtitleActive = false; }
         pageCtrl.destroy();
         dismissMenu();
-        try { if (ballView != null) wm.removeView(ballView); } catch (Exception e) {}
+        try { if (wm != null && ballView != null) wm.removeView(ballView); } catch (Exception e) {}
         super.onDestroy();
     }
 

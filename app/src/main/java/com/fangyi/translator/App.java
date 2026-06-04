@@ -18,10 +18,10 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        createNotificationChannels();
-        PreferencesHelper.init(this);
-        AppDatabase.init(this);
-        TranslationEngine.init(this);
+        try { createNotificationChannels(); } catch (Exception e) { /* non-critical */ }
+        try { PreferencesHelper.init(this); } catch (Exception e) { /* non-critical */ }
+        try { AppDatabase.init(this); } catch (Exception e) { /* non-critical */ }
+        try { TranslationEngine.init(this); } catch (Exception e) { /* non-critical */ }
     }
 
     private void createNotificationChannels() {

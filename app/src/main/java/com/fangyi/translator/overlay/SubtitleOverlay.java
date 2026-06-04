@@ -85,7 +85,10 @@ public class SubtitleOverlay {
                             overlayParams.gravity = Gravity.TOP | Gravity.START;
                             overlayParams.x = (int) (initialX + event.getRawX() - initialTouchX);
                             overlayParams.y = (int) (initialY + event.getRawY() - initialTouchY);
-                            windowManager.updateViewLayout(overlayView, overlayParams);
+                            try {
+                                if (windowManager != null && overlayView != null)
+                                    windowManager.updateViewLayout(overlayView, overlayParams);
+                            } catch (Exception ignored) {}
                         }
                         return true;
 

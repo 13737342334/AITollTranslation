@@ -98,20 +98,24 @@ public class SpeechEngine {
 
             @Override
             public void onResults(Bundle results) {
-                if (callback != null) {
-                    String text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                            .get(0);
-                    callback.onFinalResult(text);
+                if (callback != null && results != null) {
+                    java.util.ArrayList<String> list = results.getStringArrayList(
+                            SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (list != null && !list.isEmpty()) {
+                        callback.onFinalResult(list.get(0));
+                    }
                 }
                 restartListening();
             }
 
             @Override
             public void onPartialResults(Bundle partialResults) {
-                if (callback != null) {
-                    String text = partialResults.getStringArrayList(
-                            SpeechRecognizer.RESULTS_RECOGNITION).get(0);
-                    callback.onPartialResult(text);
+                if (callback != null && partialResults != null) {
+                    java.util.ArrayList<String> list = partialResults.getStringArrayList(
+                            SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (list != null && !list.isEmpty()) {
+                        callback.onPartialResult(list.get(0));
+                    }
                 }
             }
 

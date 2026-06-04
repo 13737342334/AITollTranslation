@@ -25,7 +25,7 @@ public class TranslationEngine {
 
     private TranslationEngine() {}
 
-    public static void init(Context context) {
+    public static synchronized void init(Context context) {
         if (instance == null) {
             instance = new TranslationEngine();
             instance.initialize();
@@ -33,6 +33,14 @@ public class TranslationEngine {
     }
 
     public static TranslationEngine getInstance() {
+        if (instance == null) {
+            synchronized (TranslationEngine.class) {
+                if (instance == null) {
+                    instance = new TranslationEngine();
+                    instance.initialize();
+                }
+            }
+        }
         return instance;
     }
 
