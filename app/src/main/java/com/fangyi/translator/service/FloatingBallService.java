@@ -191,7 +191,7 @@ public class FloatingBallService extends Service {
             menuLP = new WindowManager.LayoutParams(
                     dp(200), WindowManager.LayoutParams.WRAP_CONTENT,
                     getOverlayType(),
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    0,  // no flags - menu needs to receive clicks
                     PixelFormat.TRANSLUCENT
             );
             menuLP.gravity = Gravity.TOP | Gravity.START;
@@ -247,7 +247,7 @@ public class FloatingBallService extends Service {
         } catch (Exception e) {
             Log.e(TAG, "showMenu error", e);
             menuView = null;
-            toast("菜单打开失败");
+            toast("菜单打开失败：" + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
     }
 
