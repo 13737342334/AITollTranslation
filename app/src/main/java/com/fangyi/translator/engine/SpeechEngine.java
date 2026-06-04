@@ -34,14 +34,20 @@ public class SpeechEngine {
     }
 
     public SpeechEngine(Context context) {
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        try {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
+        } catch (Exception e) {
+            Log.e(TAG, "SpeechRecognizer not available", e);
+            speechRecognizer = null;
+        }
+        if (speechRecognizer == null) return;
+
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
-        // Prefer offline
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -119,6 +125,7 @@ public class SpeechEngine {
     }
 
     public void startListening() {
+        if (speechRecognizer == null) return;
         if (!isListening) {
             isListening = true;
             executor.execute(() -> {

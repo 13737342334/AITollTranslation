@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private void checkAndStartService() {
         if (!PermissionHelper.hasOverlayPermission(this)) {
             showOverlayPermissionDialog();
+            Toast.makeText(this, "请先授予悬浮窗权限", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS")
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch("android.permission.POST_NOTIFICATIONS");
+                Toast.makeText(this, "请授予通知权限以保持悬浮球运行", Toast.LENGTH_LONG).show();
                 return;
             }
         }
@@ -78,10 +80,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startFloatingBallService() {
-        Intent intent = new Intent(this, FloatingBallService.class);
-        ContextCompat.startForegroundService(this, intent);
-        updateServiceStatus();
-        Toast.makeText(this, "悬浮球已启动", Toast.LENGTH_SHORT).show();
+        try {
+            Intent intent = new Intent(this, FloatingBallService.class);
+            ContextCompat.startForegroundService(this, intent);
+            updateServiceStatus();
+            Toast.makeText(this, "正在启动悬浮球...", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "启动失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void stopFloatingBallService() {

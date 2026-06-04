@@ -61,20 +61,37 @@ public class FloatingBallService extends Service {
     public void onCreate() {
         super.onCreate();
         running = true;
-        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-        touchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
 
-        Point p = new Point();
-        wm.getDefaultDisplay().getRealSize(p);
-        screenW = p.x;
-        screenH = p.y;
+        // Check overlay permission first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
+            toast("错误：未授予悬浮窗权限！请在设置中开启");
+            stopSelf();
+            return;
+        }
 
-        pageCtrl = new PageTranslationController(this);
-        subtitleCtrl = new RealtimeTranslationController(this);
+        try {
+            wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+            if (wm == null) { toast("错误：无法获取WindowManager"); stopSelf(); return; }
 
-        createBall();
+            touchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
+            Point p = new Point();
+            wm.getDefaultDisplay().getRealSize(p);
+            screenW = p.x;
+            screenH = p.y;
+
+            pageCtrl = new PageTranslationController(this);
+            subtitleCtrl = new RealtimeTranslationController(this);
+            createBall();
+            toast("悬浮球已就绪");
+        } catch (SecurityException e) {
+            toast("错误：悬浮窗权限被拒绝");
+            stopSelf();
+        } catch (Exception e) {
+            toast("悬浮球启动失败：" + e.getMessage());
+            Log.e(TAG, "onCreate failed", e);
+        }
+
         startForeground(NOTIFICATION_ID, buildNotification());
-        Log.d(TAG, "Service created, ball added. Screen=" + screenW + "x" + screenH);
     }
 
     // ==================== Ball ====================
@@ -167,60 +184,71 @@ public class FloatingBallService extends Service {
     private void showMenu() {
         dismissMenu();
 
-        menuView = LayoutInflater.from(this).inflate(R.layout.popup_menu, null);
-        menuLP = new WindowManager.LayoutParams(
-                dp(200), WindowManager.LayoutParams.WRAP_CONTENT,
-                getOverlayType(),
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        menuLP.gravity = Gravity.TOP | Gravity.START;
+        try {
+            menuView = LayoutInflater.from(this).inflate(R.layout.popup_menu, null);
+            if (menuView == null) { toast("菜单加载失败"); return; }
 
-        // Position relative to ball
-        int bw = ballView.getWidth(); if (bw == 0) bw = dp(56);
-        int cx = ballLP.x + bw / 2;
-        int cy = ballLP.y;
+            menuLP = new WindowManager.LayoutParams(
+                    dp(200), WindowManager.LayoutParams.WRAP_CONTENT,
+                    getOverlayType(),
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    PixelFormat.TRANSLUCENT
+            );
+            menuLP.gravity = Gravity.TOP | Gravity.START;
 
-        menuLP.x = Math.max(0, Math.min(cx - dp(100), screenW - dp(200)));
-        menuLP.y = (cy > screenH / 2) ? cy - dp(220) : cy + bw + dp(8);
+            // Position relative to ball
+            int bw = ballView.getWidth(); if (bw == 0) bw = dp(56);
+            int cx = ballLP.x + bw / 2;
+            int cy = ballLP.y;
 
-        // Setup click handlers
-        menuView.findViewById(R.id.menu_translate_page).setOnClickListener(v -> {
-            dismissMenu();
-            toast("正在请求截图权限...");
-            pageCtrl.start();
-            startActivity(new Intent(this, CaptureActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        });
+            menuLP.x = Math.max(0, Math.min(cx - dp(100), screenW - dp(200)));
+            menuLP.y = (cy > screenH / 2) ? cy - dp(220) : cy + bw + dp(8);
 
-        TextView btnSub = menuView.findViewById(R.id.menu_subtitle);
-        updateSubtitleBtn(btnSub);
-        btnSub.setOnClickListener(v -> {
-            dismissMenu();
-            if (subtitleActive) {
-                subtitleCtrl.stop();
-                subtitleActive = false;
-                toast("字幕已停止");
-            } else {
-                subtitleCtrl.start();
-                subtitleActive = true;
-                toast("字幕已启动，请播放英文视频");
+            // Setup click handlers with null checks
+            View btn1 = menuView.findViewById(R.id.menu_translate_page);
+            if (btn1 != null) btn1.setOnClickListener(v -> {
+                dismissMenu();
+                pageCtrl.start();
+                startActivity(new Intent(this, CaptureActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            });
+
+            TextView btnSub = menuView.findViewById(R.id.menu_subtitle);
+            if (btnSub != null) {
+                updateSubtitleBtn(btnSub);
+                btnSub.setOnClickListener(v -> {
+                    dismissMenu();
+                    if (subtitleActive) {
+                        subtitleCtrl.stop();
+                        subtitleActive = false;
+                        toast("字幕已停止");
+                    } else {
+                        subtitleCtrl.start();
+                        subtitleActive = true;
+                        toast("字幕已启动");
+                    }
+                });
             }
-        });
 
-        menuView.findViewById(R.id.menu_settings).setOnClickListener(v -> {
-            dismissMenu();
-            startActivity(new Intent(this, MainActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        });
+            View btn3 = menuView.findViewById(R.id.menu_settings);
+            if (btn3 != null) btn3.setOnClickListener(v -> {
+                dismissMenu();
+                startActivity(new Intent(this, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            });
 
-        menuView.findViewById(R.id.menu_hide).setOnClickListener(v -> {
-            dismissMenu();
-            stopSelf();
-        });
+            View btn4 = menuView.findViewById(R.id.menu_hide);
+            if (btn4 != null) btn4.setOnClickListener(v -> {
+                dismissMenu();
+                stopSelf();
+            });
 
-        try { wm.addView(menuView, menuLP); }
-        catch (Exception e) { Log.e(TAG, "menu addView failed", e); menuView = null; }
+            wm.addView(menuView, menuLP);
+        } catch (Exception e) {
+            Log.e(TAG, "showMenu error", e);
+            menuView = null;
+            toast("菜单打开失败");
+        }
     }
 
     private void updateSubtitleBtn(TextView btn) {
