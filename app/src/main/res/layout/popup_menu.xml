@@ -19,7 +19,7 @@
         android:textSize="16sp"
         android:drawableStart="@drawable/ic_camera"
         android:drawablePadding="14dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/bg_menu_item"
         android:clickable="true"
         android:focusable="true" />
 
@@ -41,7 +41,7 @@
         android:textSize="16sp"
         android:drawableStart="@drawable/ic_play"
         android:drawablePadding="14dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/bg_menu_item"
         android:clickable="true"
         android:focusable="true" />
 
@@ -65,7 +65,7 @@
             android:text="设置"
             android:textColor="#FF888888"
             android:textSize="13sp"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/bg_menu_item"
             android:clickable="true"
             android:focusable="true" />
 
@@ -83,7 +83,7 @@
             android:text="关闭"
             android:textColor="#FF888888"
             android:textSize="13sp"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/bg_menu_item"
             android:clickable="true"
             android:focusable="true" />
 
