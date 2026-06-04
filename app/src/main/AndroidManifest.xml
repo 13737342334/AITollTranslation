@@ -39,6 +39,11 @@
             android:name=".PermissionActivity"
             android:theme="@style/Theme.FangyiTranslator" />
 
+        <activity
+            android:name=".CaptureActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true" />
+
         <service
             android:name=".service.FloatingBallService"
             android:foregroundServiceType="mediaProjection" />

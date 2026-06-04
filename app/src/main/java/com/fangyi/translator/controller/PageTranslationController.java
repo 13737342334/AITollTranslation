@@ -1,14 +1,10 @@
 package com.fangyi.translator.controller;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
-import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.fangyi.translator.data.AppDatabase;
 import com.fangyi.translator.data.TranslationCacheEntity;
@@ -16,24 +12,15 @@ import com.fangyi.translator.engine.OCREngine;
 import com.fangyi.translator.engine.TranslationEngine;
 import com.fangyi.translator.overlay.TranslationOverlay;
 import com.fangyi.translator.service.ScreenCaptureService;
-import com.fangyi.translator.util.PreferencesHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-/**
- * Orchestrates the page translation workflow:
- * 1. Request MediaProjection permission from user
- * 2. Take screenshot
- * 3. OCR recognize text blocks
- * 4. Translate each block (with cache lookup)
- * 5. Display translation overlay
- */
 public class PageTranslationController {
+
+    private static final String TAG = "PageTranslationCtrl";
 
     private final Context context;
     private final OCREngine ocrEngine;
@@ -41,7 +28,6 @@ public class PageTranslationController {
     private final Executor executor = Executors.newCachedThreadPool();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private Activity requestingActivity;
     private boolean isTranslating = false;
 
     public PageTranslationController(Context context) {
@@ -51,8 +37,8 @@ public class PageTranslationController {
     }
 
     /**
-     * Start the translation workflow. If MediaProjection hasn't been set up,
-     * will need an Activity to launch the permission intent.
+     * Called after CaptureActivity has obtained MediaProjection permission.
+     * ScreenCaptureService will call back with the screenshot.
      */
     public void start() {
         if (isTranslating) return;
@@ -60,51 +46,54 @@ public class PageTranslationController {
 
         overlay.show();
         overlay.showProgress();
-        overlay.updateStatus("准备截取屏幕...");
+        overlay.updateStatus("正在截取屏幕...");
 
-        // Set up screenshot callback
         ScreenCaptureService.setScreenshotCallback(new ScreenCaptureService.ScreenshotCallback() {
             @Override
             public void onScreenshot(Bitmap bitmap) {
-                overlay.updateStatus("正在识别文字...");
+                mainHandler.post(() -> overlay.updateStatus("正在识别文字..."));
                 processScreenshot(bitmap);
             }
 
             @Override
             public void onError(String error) {
-                overlay.updateStatus("截图失败: " + error);
-                overlay.scheduleAutoDismiss(5000);
+                Log.e(TAG, "Screenshot error: " + error);
+                mainHandler.post(() -> {
+                    overlay.updateStatus("截图失败: " + error);
+                    overlay.hideProgress();
+                    overlay.scheduleAutoDismiss(5000);
+                });
                 isTranslating = false;
             }
         });
-
-        ScreenCaptureService.takeScreenshot(context);
     }
 
     private void processScreenshot(Bitmap bitmap) {
         executor.execute(() -> {
             try {
                 // Step 1: OCR
-                List<OCREngine.TextBlock> enBlocks = null;
+                List<OCREngine.TextBlock> enBlocks;
                 try {
                     enBlocks = com.google.android.gms.tasks.Tasks.await(
                             ocrEngine.recognize(bitmap)
                     );
                 } catch (Exception e) {
-                    // Try again with lower resolution
-                    Bitmap scaled = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2,
-                            bitmap.getHeight() / 2, true);
+                    Log.e(TAG, "OCR failed, retrying with scaled bitmap", e);
+                    Bitmap scaled = Bitmap.createScaledBitmap(bitmap,
+                            bitmap.getWidth() / 2, bitmap.getHeight() / 2, true);
+                    bitmap.recycle();
                     try {
                         enBlocks = com.google.android.gms.tasks.Tasks.await(
                                 ocrEngine.recognize(scaled)
                         );
                     } catch (Exception ex) {
+                        Log.e(TAG, "OCR retry also failed", ex);
                         mainHandler.post(() -> {
                             overlay.updateStatus("未检测到英文文字");
                             overlay.hideProgress();
                             overlay.scheduleAutoDismiss(5000);
-                            isTranslating = false;
                         });
+                        isTranslating = false;
                         return;
                     }
                 }
@@ -114,14 +103,14 @@ public class PageTranslationController {
                         overlay.updateStatus("当前页面未检测到英文内容");
                         overlay.hideProgress();
                         overlay.scheduleAutoDismiss(5000);
-                        isTranslating = false;
                     });
+                    isTranslating = false;
                     return;
                 }
 
-                // Step 2: Check cache and translate
+                // Step 2: Translate with cache
                 int total = enBlocks.size();
-                overlay.updateStatus("正在翻译 " + total + " 段文字...");
+                mainHandler.post(() -> overlay.updateStatus("正在翻译 " + total + " 段文字..."));
 
                 List<TranslationOverlay.TranslationText> results = new ArrayList<>();
                 TranslationEngine translator = TranslationEngine.getInstance();
@@ -131,7 +120,6 @@ public class PageTranslationController {
                     OCREngine.TextBlock block = enBlocks.get(i);
                     String translated;
 
-                    // Try cache first
                     TranslationCacheEntity cached = db.translationCacheDao()
                             .findByOriginal(block.text);
                     if (cached != null) {
@@ -141,41 +129,38 @@ public class PageTranslationController {
                             translated = com.google.android.gms.tasks.Tasks.await(
                                     translator.translate(block.text)
                             );
-                            // Save to cache
                             db.translationCacheDao().insert(
                                     new TranslationCacheEntity(block.text, translated, "en", "zh")
                             );
                         } catch (Exception e) {
-                            translated = "[…]";  // placeholder for failed translations
+                            translated = "[…]";
                         }
                     }
 
-                    int finalI = i;
-                    mainHandler.post(() -> {
-                        overlay.updateStatus("翻译中... (" + (finalI + 1) + "/" + total + ")");
-                    });
+                    final int progress = i + 1;
+                    mainHandler.post(() -> overlay.updateStatus("翻译中... (" + progress + "/" + total + ")"));
 
                     results.add(new TranslationOverlay.TranslationText(
                             translated, block.bounds, 14f
                     ));
                 }
 
-                // Trim cache to last 500 entries
                 db.translationCacheDao().trimTo(500);
 
                 // Step 3: Display
                 mainHandler.post(() -> {
                     overlay.showTranslationBlocks(results);
-                    overlay.scheduleAutoDismiss(3 * 60 * 1000); // 3 min auto dismiss
-                    isTranslating = false;
+                    overlay.scheduleAutoDismiss(3 * 60 * 1000);
                 });
+                isTranslating = false;
 
             } catch (Exception e) {
+                Log.e(TAG, "Translation error", e);
                 mainHandler.post(() -> {
                     overlay.updateStatus("翻译出错: " + e.getMessage());
                     overlay.scheduleAutoDismiss(5000);
-                    isTranslating = false;
                 });
+                isTranslating = false;
             }
         });
     }

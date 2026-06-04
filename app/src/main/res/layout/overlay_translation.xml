@@ -40,4 +40,18 @@
         android:textSize="14sp"
         android:visibility="gone" />
 
+    <Button
+        android:id="@+id/btn_close_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:text="X 关闭翻译"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:background="#CC000000"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+
 </FrameLayout>

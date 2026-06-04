@@ -8,21 +8,21 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
 import com.fangyi.translator.App;
+import com.fangyi.translator.CaptureActivity;
 import com.fangyi.translator.MainActivity;
 import com.fangyi.translator.R;
 import com.fangyi.translator.controller.PageTranslationController;
@@ -30,6 +30,7 @@ import com.fangyi.translator.controller.RealtimeTranslationController;
 
 public class FloatingBallService extends Service {
 
+    private static final String TAG = "FloatingBallService";
     private static boolean running = false;
 
     private WindowManager windowManager;
@@ -93,11 +94,6 @@ public class FloatingBallService extends Service {
         super.onDestroy();
     }
 
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-    }
-
     // --- Floating Ball ---
 
     private void createFloatingBall() {
@@ -115,7 +111,6 @@ public class FloatingBallService extends Service {
         ballParams.x = screenWidth - dpToPx(72);
         ballParams.y = screenHeight / 3;
 
-        // Drag to move
         ivBall.setOnTouchListener(new View.OnTouchListener() {
             private static final int CLICK_THRESHOLD = 10;
             private float downX, downY;
@@ -143,7 +138,9 @@ public class FloatingBallService extends Service {
                         if (isDragging) {
                             ballParams.x = (int) (initialBallX + event.getRawX() - initialTouchX);
                             ballParams.y = (int) (initialBallY + event.getRawY() - initialTouchY);
-                            windowManager.updateViewLayout(floatingBallView, ballParams);
+                            try {
+                                windowManager.updateViewLayout(floatingBallView, ballParams);
+                            } catch (Exception ignored) {}
                             dismissPopupMenu();
                         }
                         return true;
@@ -161,25 +158,32 @@ public class FloatingBallService extends Service {
 
             private void snapToEdge() {
                 int ballWidth = floatingBallView.getWidth();
+                if (ballWidth == 0) ballWidth = dpToPx(56);
                 int centerX = ballParams.x + ballWidth / 2;
                 if (centerX < screenWidth / 2) {
                     ballParams.x = dpToPx(8);
                 } else {
                     ballParams.x = screenWidth - ballWidth - dpToPx(8);
                 }
-                ballParams.y = Math.max(0, Math.min(ballParams.y, screenHeight - floatingBallView.getHeight() - dpToPx(60)));
-                windowManager.updateViewLayout(floatingBallView, ballParams);
+                ballParams.y = Math.max(0, Math.min(ballParams.y, screenHeight - dpToPx(120)));
+                try {
+                    windowManager.updateViewLayout(floatingBallView, ballParams);
+                } catch (Exception ignored) {}
             }
         });
 
-        windowManager.addView(floatingBallView, ballParams);
+        try {
+            windowManager.addView(floatingBallView, ballParams);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to add floating ball", e);
+        }
     }
 
     private void removeFloatingBall() {
         if (floatingBallView != null) {
             try {
                 windowManager.removeView(floatingBallView);
-            } catch (IllegalArgumentException ignored) {}
+            } catch (Exception ignored) {}
             floatingBallView = null;
         }
     }
@@ -197,67 +201,97 @@ public class FloatingBallService extends Service {
     private void showPopupMenu() {
         removePopupMenu();
 
-        popupMenuView = LayoutInflater.from(this).inflate(R.layout.popup_menu, null);
+        try {
+            popupMenuView = LayoutInflater.from(this).inflate(R.layout.popup_menu, null);
 
-        menuParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                getOverlayType(),
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        menuParams.gravity = Gravity.TOP | Gravity.START;
+            menuParams = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    getOverlayType(),
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    PixelFormat.TRANSLUCENT
+            );
+            menuParams.gravity = Gravity.TOP | Gravity.START;
 
-        int ballCenterX = ballParams.x + floatingBallView.getWidth() / 2;
-        int ballTopY = ballParams.y;
+            int ballWidth = floatingBallView != null ? floatingBallView.getWidth() : dpToPx(56);
+            if (ballWidth == 0) ballWidth = dpToPx(56);
+            int ballCenterX = ballParams.x + ballWidth / 2;
+            int ballTopY = ballParams.y;
 
-        int menuWidth = dpToPx(200);
-        menuParams.x = Math.max(0, ballCenterX - menuWidth / 2);
-        menuParams.x = Math.min(menuParams.x, screenWidth - menuWidth);
+            int menuWidth = dpToPx(200);
+            menuParams.x = Math.max(0, ballCenterX - menuWidth / 2);
+            menuParams.x = Math.min(menuParams.x, screenWidth - menuWidth);
 
-        if (ballTopY > screenHeight / 2) {
-            menuParams.y = ballTopY - dpToPx(210);
-        } else {
-            menuParams.y = ballTopY + floatingBallView.getHeight() + dpToPx(8);
-        }
-
-        // Menu item clicks
-        TextView menuTranslatePage = popupMenuView.findViewById(R.id.menu_translate_page);
-        TextView menuSubtitle = popupMenuView.findViewById(R.id.menu_subtitle);
-        TextView menuSettings = popupMenuView.findViewById(R.id.menu_settings);
-        TextView menuHide = popupMenuView.findViewById(R.id.menu_hide);
-
-        menuTranslatePage.setOnClickListener(v -> {
-            dismissPopupMenu();
-            pageTranslationController.start();
-        });
-
-        menuSubtitle.setOnClickListener(v -> {
-            dismissPopupMenu();
-            if (isSubtitleActive) {
-                realtimeTranslationController.stop();
-                isSubtitleActive = false;
-                Toast.makeText(this, "实时字幕已关闭", Toast.LENGTH_SHORT).show();
+            if (ballTopY > screenHeight / 2) {
+                menuParams.y = ballTopY - dpToPx(220);
             } else {
-                realtimeTranslationController.start();
-                isSubtitleActive = true;
-                Toast.makeText(this, "实时字幕已开启，请播放英文视频", Toast.LENGTH_SHORT).show();
+                menuParams.y = ballTopY + ballWidth + dpToPx(8);
             }
-        });
 
-        menuSettings.setOnClickListener(v -> {
-            dismissPopupMenu();
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-        });
+            // Menu item clicks
+            TextView menuTranslatePage = popupMenuView.findViewById(R.id.menu_translate_page);
+            TextView menuSubtitle = popupMenuView.findViewById(R.id.menu_subtitle);
+            TextView menuSettings = popupMenuView.findViewById(R.id.menu_settings);
+            TextView menuHide = popupMenuView.findViewById(R.id.menu_hide);
 
-        menuHide.setOnClickListener(v -> {
-            dismissPopupMenu();
-            stopSelf();
-        });
+            if (menuTranslatePage != null) {
+                menuTranslatePage.setOnClickListener(v -> {
+                    dismissPopupMenu();
+                    startPageTranslation();
+                });
+            }
 
-        windowManager.addView(popupMenuView, menuParams);
+            if (menuSubtitle != null) {
+                menuSubtitle.setOnClickListener(v -> {
+                    dismissPopupMenu();
+                    toggleSubtitle();
+                });
+            }
+
+            if (menuSettings != null) {
+                menuSettings.setOnClickListener(v -> {
+                    dismissPopupMenu();
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                });
+            }
+
+            if (menuHide != null) {
+                menuHide.setOnClickListener(v -> {
+                    dismissPopupMenu();
+                    stopSelf();
+                });
+            }
+
+            windowManager.addView(popupMenuView, menuParams);
+        } catch (SecurityException e) {
+            Log.e(TAG, "Overlay permission denied", e);
+            Toast.makeText(this, "请授予悬浮窗权限", Toast.LENGTH_SHORT).show();
+            popupMenuView = null;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to show menu", e);
+            popupMenuView = null;
+        }
+    }
+
+    private void startPageTranslation() {
+        // Launch transparent Activity to request MediaProjection
+        Intent intent = new Intent(this, CaptureActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    private void toggleSubtitle() {
+        if (isSubtitleActive) {
+            realtimeTranslationController.stop();
+            isSubtitleActive = false;
+            showToast("实时字幕已关闭");
+        } else {
+            realtimeTranslationController.start();
+            isSubtitleActive = true;
+            showToast("实时字幕已开启，请播放英文视频");
+        }
     }
 
     private void dismissPopupMenu() {
@@ -268,12 +302,16 @@ public class FloatingBallService extends Service {
         if (popupMenuView != null) {
             try {
                 windowManager.removeView(popupMenuView);
-            } catch (IllegalArgumentException ignored) {}
+            } catch (Exception ignored) {}
             popupMenuView = null;
         }
     }
 
     // --- Helpers ---
+
+    private void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
 
     private int getOverlayType() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
