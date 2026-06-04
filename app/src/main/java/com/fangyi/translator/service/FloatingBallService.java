@@ -255,6 +255,16 @@ public class FloatingBallService extends Service {
             }
 
             if (menuSubtitle != null) {
+                // Update text based on state
+                if (isSubtitleActive) {
+                    menuSubtitle.setText("停止字幕翻译");
+                    menuSubtitle.setCompoundDrawablesWithIntrinsicBounds(
+                            R.drawable.ic_close, 0, 0, 0);
+                } else {
+                    menuSubtitle.setText("视频语音字幕翻译");
+                    menuSubtitle.setCompoundDrawablesWithIntrinsicBounds(
+                            R.drawable.ic_play, 0, 0, 0);
+                }
                 menuSubtitle.setOnClickListener(v -> {
                     dismissPopupMenu();
                     toggleSubtitle();

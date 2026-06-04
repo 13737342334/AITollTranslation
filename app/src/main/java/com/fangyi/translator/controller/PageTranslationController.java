@@ -150,7 +150,7 @@ public class PageTranslationController {
                 // Step 3: Display
                 mainHandler.post(() -> {
                     overlay.showTranslationBlocks(results);
-                    overlay.scheduleAutoDismiss(3 * 60 * 1000);
+                    // 不自动消失，等用户点击关闭
                 });
                 isTranslating = false;
 
