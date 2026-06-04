@@ -2,19 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.fangyi.translator">
 
-    <!-- Network: download ML Kit models + online translation fallback -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Foreground service: keep floating ball alive -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Floating window -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
-    <!-- Audio capture: real-time translation -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
@@ -39,18 +31,21 @@
             android:name=".PermissionActivity"
             android:theme="@style/Theme.FangyiTranslator" />
 
-        <activity
-            android:name=".CaptureActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:excludeFromRecents="true" />
-
         <service
             android:name=".service.FloatingBallService"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="mediaPlayback" />
 
         <service
-            android:name=".service.ScreenCaptureService"
-            android:foregroundServiceType="mediaProjection" />
+            android:name=".service.TranslationAccessibilityService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
 
     </application>
 

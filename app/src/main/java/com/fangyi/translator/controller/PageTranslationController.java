@@ -37,8 +37,39 @@ public class PageTranslationController {
     }
 
     /**
-     * Called after CaptureActivity has obtained MediaProjection permission.
-     * ScreenCaptureService will call back with the screenshot.
+     * Use AccessibilityService to take screenshot without leaving current app.
+     */
+    public void startViaAccessibility() {
+        if (isTranslating) return;
+        isTranslating = true;
+
+        overlay.show();
+        overlay.showProgress();
+        overlay.updateStatus("正在截取屏幕(无障碍模式)...");
+
+        com.fangyi.translator.service.TranslationAccessibilityService.requestScreenshot(
+                new com.fangyi.translator.service.TranslationAccessibilityService.ScreenshotCallback() {
+                    @Override
+                    public void onScreenshot(Bitmap bitmap) {
+                        mainHandler.post(() -> overlay.updateStatus("正在识别文字..."));
+                        processScreenshot(bitmap);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "A11y screenshot error: " + error);
+                        mainHandler.post(() -> {
+                            overlay.updateStatus("截图失败: " + error);
+                            overlay.hideProgress();
+                            overlay.scheduleAutoDismiss(8000);
+                        });
+                        isTranslating = false;
+                    }
+                });
+    }
+
+    /**
+     * @deprecated Use startViaAccessibility instead.
      */
     public void start() {
         if (isTranslating) return;

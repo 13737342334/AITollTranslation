@@ -24,7 +24,6 @@ import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 
 import com.fangyi.translator.App;
-import com.fangyi.translator.CaptureActivity;
 import com.fangyi.translator.MainActivity;
 import com.fangyi.translator.R;
 import com.fangyi.translator.controller.PageTranslationController;
@@ -208,9 +207,17 @@ public class FloatingBallService extends Service {
             View btn1 = menuView.findViewById(R.id.menu_translate_page);
             if (btn1 != null) btn1.setOnClickListener(v -> {
                 dismissMenu();
-                pageCtrl.start();
-                startActivity(new Intent(this, CaptureActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                // Check accessibility service first
+                if (!TranslationAccessibilityService.isEnabled()) {
+                    toast("请先开启无障碍服务：设置→无障碍→悬浮翻译助手");
+                    // Open accessibility settings
+                    try {
+                        startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    } catch (Exception ignored) {}
+                    return;
+                }
+                pageCtrl.startViaAccessibility();
             });
 
             TextView btnSub = menuView.findViewById(R.id.menu_subtitle);
