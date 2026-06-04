@@ -100,39 +100,56 @@ public class FloatingBallService extends Service {
         floatingBallView = LayoutInflater.from(this).inflate(R.layout.view_floating_ball, null);
         ImageView ivBall = floatingBallView.findViewById(R.id.iv_floating_ball);
 
+        // Make both the frame and the image clickable
+        floatingBallView.setClickable(true);
+        floatingBallView.setFocusableInTouchMode(true);
+        ivBall.setClickable(true);
+        ivBall.setFocusableInTouchMode(true);
+
         ballParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 getOverlayType(),
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
         );
         ballParams.gravity = Gravity.TOP | Gravity.START;
         ballParams.x = screenWidth - dpToPx(72);
         ballParams.y = screenHeight / 3;
 
+        // Use post to ensure view is laid out before accepting touch
+        floatingBallView.post(() -> {
+            Log.d(TAG, "Floating ball posted - size: " + floatingBallView.getWidth() + "x" + floatingBallView.getHeight());
+        });
+
+        // Touch handler - drag to move, tap to open menu
         ivBall.setOnTouchListener(new View.OnTouchListener() {
-            private static final int CLICK_THRESHOLD = 10;
-            private float downX, downY;
-            private boolean isDragging;
+            private static final int DRAG_THRESHOLD_DP = 8;
+            private int dragThresholdPx = 0;
+            private boolean isDragging = false;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (dragThresholdPx == 0) {
+                    dragThresholdPx = dpToPx(DRAG_THRESHOLD_DP);
+                }
+
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         initialBallX = ballParams.x;
                         initialBallY = ballParams.y;
-                        downX = event.getRawX();
-                        downY = event.getRawY();
                         isDragging = false;
+                        Log.d(TAG, "ACTION_DOWN at " + initialTouchX + "," + initialTouchY);
                         return true;
 
-                    case MotionEvent.ACTION_MOVE:
-                        float dx = event.getRawX() - downX;
-                        float dy = event.getRawY() - downY;
-                        if (Math.abs(dx) > CLICK_THRESHOLD || Math.abs(dy) > CLICK_THRESHOLD) {
+                    case MotionEvent.ACTION_MOVE: {
+                        float dx = Math.abs(event.getRawX() - initialTouchX);
+                        float dy = Math.abs(event.getRawY() - initialTouchY);
+                        if (dx > dragThresholdPx || dy > dragThresholdPx) {
                             isDragging = true;
                         }
                         if (isDragging) {
@@ -144,13 +161,20 @@ public class FloatingBallService extends Service {
                             dismissPopupMenu();
                         }
                         return true;
+                    }
 
                     case MotionEvent.ACTION_UP:
+                        Log.d(TAG, "ACTION_UP - isDragging=" + isDragging);
                         if (isDragging) {
                             snapToEdge();
                         } else {
+                            showToast("点击了悬浮球");
                             toggleMenu();
                         }
+                        return true;
+
+                    case MotionEvent.ACTION_CANCEL:
+                        isDragging = false;
                         return true;
                 }
                 return false;
@@ -174,8 +198,10 @@ public class FloatingBallService extends Service {
 
         try {
             windowManager.addView(floatingBallView, ballParams);
+            Log.d(TAG, "Floating ball added to window");
         } catch (Exception e) {
             Log.e(TAG, "Failed to add floating ball", e);
+            showToast("悬浮球创建失败: " + e.getMessage());
         }
     }
 
