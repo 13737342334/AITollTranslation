@@ -15,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -98,37 +97,33 @@ public class FloatingBallService extends Service {
 
     private void createFloatingBall() {
         floatingBallView = LayoutInflater.from(this).inflate(R.layout.view_floating_ball, null);
-        ImageView ivBall = floatingBallView.findViewById(R.id.iv_floating_ball);
+        TextView tvBall = floatingBallView.findViewById(R.id.iv_floating_ball);
 
-        // Make both the frame and the image clickable
-        floatingBallView.setClickable(true);
-        floatingBallView.setFocusableInTouchMode(true);
-        ivBall.setClickable(true);
-        ivBall.setFocusableInTouchMode(true);
+        tvBall.setClickable(true);
+        tvBall.setFocusableInTouchMode(true);
 
         ballParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 getOverlayType(),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
         ballParams.gravity = Gravity.TOP | Gravity.START;
         ballParams.x = screenWidth - dpToPx(72);
         ballParams.y = screenHeight / 3;
 
-        // Use post to ensure view is laid out before accepting touch
-        floatingBallView.post(() -> {
-            Log.d(TAG, "Floating ball posted - size: " + floatingBallView.getWidth() + "x" + floatingBallView.getHeight());
+        // Use onClickListener for simple tap
+        tvBall.setOnClickListener(v -> {
+            showToast("点击！");
+            toggleMenu();
         });
 
-        // Touch handler - drag to move, tap to open menu
-        ivBall.setOnTouchListener(new View.OnTouchListener() {
+        // Use onTouchListener for drag-to-move
+        tvBall.setOnTouchListener(new View.OnTouchListener() {
             private static final int DRAG_THRESHOLD_DP = 8;
             private int dragThresholdPx = 0;
-            private boolean isDragging = false;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -142,17 +137,12 @@ public class FloatingBallService extends Service {
                         initialTouchY = event.getRawY();
                         initialBallX = ballParams.x;
                         initialBallY = ballParams.y;
-                        isDragging = false;
-                        Log.d(TAG, "ACTION_DOWN at " + initialTouchX + "," + initialTouchY);
-                        return true;
+                        return false; // let onClick also work
 
                     case MotionEvent.ACTION_MOVE: {
                         float dx = Math.abs(event.getRawX() - initialTouchX);
                         float dy = Math.abs(event.getRawY() - initialTouchY);
                         if (dx > dragThresholdPx || dy > dragThresholdPx) {
-                            isDragging = true;
-                        }
-                        if (isDragging) {
                             ballParams.x = (int) (initialBallX + event.getRawX() - initialTouchX);
                             ballParams.y = (int) (initialBallY + event.getRawY() - initialTouchY);
                             try {
@@ -164,17 +154,8 @@ public class FloatingBallService extends Service {
                     }
 
                     case MotionEvent.ACTION_UP:
-                        Log.d(TAG, "ACTION_UP - isDragging=" + isDragging);
-                        if (isDragging) {
-                            snapToEdge();
-                        } else {
-                            showToast("点击了悬浮球");
-                            toggleMenu();
-                        }
-                        return true;
-
-                    case MotionEvent.ACTION_CANCEL:
-                        isDragging = false;
+                        // Snap to edge after drag
+                        snapToEdge();
                         return true;
                 }
                 return false;
@@ -198,10 +179,13 @@ public class FloatingBallService extends Service {
 
         try {
             windowManager.addView(floatingBallView, ballParams);
-            Log.d(TAG, "Floating ball added to window");
+            showToast("悬浮球已启动");
+        } catch (SecurityException e) {
+            showToast("请先授予悬浮窗权限！");
+            stopSelf();
         } catch (Exception e) {
-            Log.e(TAG, "Failed to add floating ball", e);
-            showToast("悬浮球创建失败: " + e.getMessage());
+            showToast("启动失败: " + e.getMessage());
+            stopSelf();
         }
     }
 
