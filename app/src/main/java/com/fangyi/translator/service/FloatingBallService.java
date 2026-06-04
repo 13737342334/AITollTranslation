@@ -276,6 +276,9 @@ public class FloatingBallService extends Service {
     }
 
     private void startPageTranslation() {
+        // Set up controller first so callback is ready when screenshot arrives
+        pageTranslationController.start();
+
         // Launch transparent Activity to request MediaProjection
         Intent intent = new Intent(this, CaptureActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

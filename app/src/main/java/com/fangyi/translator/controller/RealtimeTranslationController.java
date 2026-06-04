@@ -111,15 +111,23 @@ public class RealtimeTranslationController {
         if (isRunning) return;
         isRunning = true;
 
-        subtitleOverlay.show();
-        subtitleOverlay.showListening();
-        speechEngine.startListening();
+        try {
+            subtitleOverlay.show();
+            subtitleOverlay.showListening();
+            speechEngine.startListening();
+        } catch (Exception e) {
+            isRunning = false;
+        }
     }
 
     public void stop() {
         isRunning = false;
-        speechEngine.stopListening();
-        subtitleOverlay.dismiss();
+        try {
+            speechEngine.stopListening();
+        } catch (Exception ignored) {}
+        try {
+            subtitleOverlay.dismiss();
+        } catch (Exception ignored) {}
     }
 
     public boolean isRunning() {

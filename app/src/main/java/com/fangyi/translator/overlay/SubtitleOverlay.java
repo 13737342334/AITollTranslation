@@ -50,8 +50,7 @@ public class SubtitleOverlay {
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 getOverlayType(),
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
         overlayParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
@@ -97,8 +96,14 @@ public class SubtitleOverlay {
             }
         });
 
-        windowManager.addView(overlayView, overlayParams);
-        isShowing = true;
+        try {
+            windowManager.addView(overlayView, overlayParams);
+            isShowing = true;
+        } catch (SecurityException e) {
+            overlayView = null;
+        } catch (Exception e) {
+            overlayView = null;
+        }
     }
 
     public void updateSubtitle(String english, String chinese) {
