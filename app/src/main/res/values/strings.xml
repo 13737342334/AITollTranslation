@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">悬浮翻译助手</string>
+
+    <!-- Main Activity -->
+    <string name="title_page_translation">页面翻译</string>
+    <string name="title_realtime_subtitle">实时字幕</string>
+    <string name="status_floating_ball">悬浮球状态</string>
+    <string name="status_running">运行中</string>
+    <string name="status_stopped">已停止</string>
+    <string name="btn_start_service">启动悬浮球</string>
+    <string name="btn_stop_service">停止悬浮球</string>
+    <string name="btn_settings">设置</string>
+    <string name="desc_page_translation">截图识别英文内容，中文覆盖显示在原位</string>
+    <string name="desc_realtime_subtitle">捕获设备音频，实时显示双语字幕</string>
+
+    <!-- Permission -->
+    <string name="permission_overlay_title">悬浮窗权限</string>
+    <string name="permission_overlay_desc">用于在其他应用上方显示翻译内容和悬浮球</string>
+    <string name="permission_notification_title">通知权限</string>
+    <string name="permission_notification_desc">用于保持悬浮球在后台持续运行</string>
+    <string name="permission_record_title">音频录制权限</string>
+    <string name="permission_record_desc">用于捕获设备音频进行实时翻译（仅实时字幕需要）</string>
+    <string name="btn_grant_permission">授权</string>
+    <string name="permission_granted">已授权</string>
+    <string name="permission_denied">未授权</string>
+
+    <!-- Floating Ball Menu -->
+    <string name="menu_translate_page">翻译当前页面</string>
+    <string name="menu_start_subtitle">开启实时字幕</string>
+    <string name="menu_stop_subtitle">关闭实时字幕</string>
+    <string name="menu_settings">设置</string>
+    <string name="menu_hide">隐藏悬浮球</string>
+
+    <!-- Overlay -->
+    <string name="translating">翻译中…</string>
+    <string name="translation_done">翻译完成</string>
+    <string name="tap_to_dismiss">点击任意位置关闭翻译</string>
+    <string name="subtitle_listening">正在收听…</string>
+    <string name="subtitle_no_audio">未检测到音频，请确保正在播放英文视频</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">全局翻译</string>
+    <string name="onboarding_desc_1">在任何App上层显示翻译结果，无需切换应用</string>
+    <string name="onboarding_title_2">页面翻译</string>
+    <string name="onboarding_desc_2">一键截图识别所有英文内容，中文覆盖在原文位置</string>
+    <string name="onboarding_title_3">实时字幕</string>
+    <string name="onboarding_desc_3">观看英文视频时自动显示双语字幕，支持离线翻译</string>
+    <string name="btn_get_started">开始使用</string>
+    <string name="btn_skip">跳过</string>
+    <string name="next">下一步</string>
+
+    <!-- Settings -->
+    <string name="setting_translation_size">翻译文字大小</string>
+    <string name="setting_overlay_opacity">覆盖层透明度</string>
+    <string name="setting_source_language">源语言</string>
+    <string name="setting_target_language">目标语言</string>
+    <string name="setting_cache_count">已缓存翻译</string>
+    <string name="btn_clear_cache">清除缓存</string>
+    <string name="setting_auto_translate">摇一摇触发翻译</string>
+    <string name="setting_low_battery_stop">低电量自动暂停(15%)</string>
+</resources>

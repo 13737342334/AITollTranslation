@@ -1,0 +1,70 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        applicationId "com.fangyi.translator"
+        minSdkVersion 26
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": projectDir.toString() + "/schemas"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+}
+
+dependencies {
+    // AndroidX
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.core:core:1.3.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+
+    // ML Kit - offline OCR
+    implementation 'com.google.mlkit:text-recognition:16.0.0'
+    // ML Kit - offline translation
+    implementation 'com.google.mlkit:translate:17.0.2'
+
+    // Room for translation cache
+    implementation 'androidx.room:room-runtime:2.3.0'
+    annotationProcessor 'androidx.room:room-compiler:2.3.0'
+
+    // Material Design
+    implementation 'com.google.android.material:material:1.3.0'
+
+    // CardView
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Activity Result API
+    implementation 'androidx.activity:activity:1.2.4'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.3.2'
+        force 'androidx.core:core-ktx:1.3.2'
+        force 'androidx.appcompat:appcompat:1.2.0'
+    }
+}

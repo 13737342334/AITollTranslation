@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:gravity="center_horizontal"
+    android:padding="24dp">
+
+    <!-- Top spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Icon -->
+    <ImageView
+        android:id="@+id/iv_onboarding_icon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_translate"
+        android:contentDescription="翻译图标"
+        app:tint="@color/primary" />
+
+    <TextView
+        android:id="@+id/tv_onboarding_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/onboarding_title_1"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_surface"
+        android:layout_marginTop="24dp" />
+
+    <TextView
+        android:id="@+id/tv_onboarding_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/onboarding_desc_1"
+        android:textSize="15sp"
+        android:textColor="@color/on_surface_secondary"
+        android:gravity="center"
+        android:layout_marginTop="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
+
+    <!-- Page indicator dots -->
+    <LinearLayout
+        android:id="@+id/page_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        android:gravity="center">
+        <View
+            android:id="@+id/dot_1"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_dot_active" />
+        <View
+            android:id="@+id/dot_2"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_dot_inactive" />
+        <View
+            android:id="@+id/dot_3"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_dot_inactive" />
+    </LinearLayout>
+
+    <!-- Bottom spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Buttons -->
+    <Button
+        android:id="@+id/btn_onboarding_action"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="@string/next"
+        android:textColor="@color/surface"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btn_skip"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="@string/btn_skip"
+        android:textColor="@color/on_surface_secondary"
+        android:background="?attr/selectableItemBackground"
+        android:layout_marginTop="8dp"
+        style="?android:attr/borderlessButtonStyle" />
+
+</LinearLayout>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/translation_overlay_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#33000000">
+
+    <LinearLayout
+        android:id="@+id/translation_texts_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/tv_overlay_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="@string/tap_to_dismiss"
+        android:textColor="#88FFFFFF"
+        android:textSize="11sp"
+        android:padding="8dp"
+        android:layout_marginBottom="32dp" />
+
+    <ProgressBar
+        android:id="@+id/progress_translating"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_translating_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="60dp"
+        android:text="@string/translating"
+        android:textColor="@color/translation_text"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+</FrameLayout>

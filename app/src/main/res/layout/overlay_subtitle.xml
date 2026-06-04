@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/subtitle_background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/subtitle_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- English subtitle (original) -->
+        <TextView
+            android:id="@+id/tv_subtitle_en"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/original_text"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:text="@string/subtitle_listening"
+            android:alpha="0.8" />
+
+        <!-- Chinese subtitle (translated) -->
+        <TextView
+            android:id="@+id/tv_subtitle_zh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/translation_text"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="4dp" />
+
+        <!-- Drag handle hint -->
+        <TextView
+            android:id="@+id/tv_drag_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="☰ 拖拽移动位置"
+            android:textColor="#66FFFFFF"
+            android:textSize="9sp"
+            android:layout_marginTop="4dp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progress_subtitle"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_gravity="end|top"
+        android:visibility="invisible"
+        style="?android:attr/progressBarStyleSmall" />
+
+</FrameLayout>

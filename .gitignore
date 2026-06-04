@@ -1,0 +1,22 @@
+# Build outputs
+*.apk
+*.aab
+/app/build/
+/build/
+.gradle/
+
+# Temp files
+gradle_temp/
+gradle.zip
+doc_output.txt
+~$*.docx
+
+# IDE
+*.iml
+.idea/
+/.idea
+local.properties
+
+# OS
+Thumbs.db
+.DS_Store

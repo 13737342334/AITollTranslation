@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/iv_floating_ball"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/ic_translate"
+        android:background="@drawable/bg_floating_ball"
+        android:scaleType="center"
+        android:padding="12dp"
+        android:contentDescription="悬浮翻译球" />
+
+</FrameLayout>
